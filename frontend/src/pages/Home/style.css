@@ -1,0 +1,38 @@
+.home-layout {
+  min-height: 100vh;
+  background: #f5f7fb;
+}
+
+.home-content {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+
+.home-section {
+  margin-top: 32px;
+}
+
+.home-section__desc {
+  max-width: 720px;
+  margin-bottom: 24px !important;
+  color: #5f6b7a;
+  line-height: 1.8;
+}
+
+.feature-card {
+  height: 100%;
+  border-radius: 16px;
+}
+
+.feature-card__icon {
+  margin-bottom: 16px;
+  font-size: 32px;
+  color: #1677ff;
+}
+
+.feature-card__desc {
+  color: #5f6b7a;
+  line-height: 1.7;
+}
