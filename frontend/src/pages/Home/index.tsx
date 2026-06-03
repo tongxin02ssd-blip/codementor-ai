@@ -6,6 +6,7 @@ import {
   RobotOutlined,
 } from '@ant-design/icons';
 import { PageHeader } from '../../components/PageHeader';
+import { ReviewForm } from '../../components/ReviewForm';
 import './style.css';
 
 const { Content } = Layout;
@@ -41,9 +42,13 @@ export function Home() {
         <PageHeader />
 
         <section className="home-section">
+          <ReviewForm />
+        </section>
+
+        <section className="home-section">
           <Title level={2}>核心功能</Title>
           <Paragraph className="home-section__desc">
-            当前版本先搭建产品首页结构，后续将逐步实现 PR 输入、Mock Review、结果展示和 AI
+            当前版本先完成 PR Review 输入模块，后续将逐步实现 Mock Review、结果展示和 AI
             分析能力。
           </Paragraph>
 
