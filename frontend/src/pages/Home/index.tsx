@@ -1,4 +1,5 @@
-import { Card, Col, Layout, Row, Steps, Typography } from 'antd';
+import { useState } from 'react';
+import { Alert, Card, Col, Layout, Row, Steps, Typography, message } from 'antd';
 import {
   BranchesOutlined,
   CheckCircleOutlined,
@@ -7,10 +8,12 @@ import {
 } from '@ant-design/icons';
 import { PageHeader } from '../../components/PageHeader';
 import { ReviewForm } from '../../components/ReviewForm';
+import { createMockReviewResult } from '../../mocks/mockReview';
+import type { ReviewFormValues, ReviewResult } from '../../types/review';
 import './style.css';
 
 const { Content } = Layout;
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 const featureList = [
   {
@@ -36,19 +39,71 @@ const featureList = [
 ];
 
 export function Home() {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
+
+  const handleAnalyze = (values: ReviewFormValues) => {
+    setIsAnalyzing(true);
+    setReviewResult(null);
+
+    window.setTimeout(() => {
+      const mockResult = createMockReviewResult(values);
+
+      setReviewResult(mockResult);
+      setIsAnalyzing(false);
+      message.success('Mock Review 分析完成');
+    }, 1000);
+  };
+
   return (
     <Layout className="home-layout">
       <Content className="home-content">
         <PageHeader />
 
         <section className="home-section">
-          <ReviewForm />
+          <ReviewForm loading={isAnalyzing} onSubmit={handleAnalyze} />
+        </section>
+
+        <section className="home-section">
+          <Title level={2}>Mock Review 结果</Title>
+          <Paragraph className="home-section__desc">
+            当前阶段先展示 Mock 分析结果，用于验证“输入 → 分析 → 生成结果”的完整流程。
+          </Paragraph>
+
+          {reviewResult ? (
+            <Card className="mock-result-card" title="临时分析结果">
+              <Alert
+                type="info"
+                showIcon
+                message="Mock Review 已生成"
+                description="正式的结构化 Review 结果展示将在 PR 5 中实现。"
+              />
+
+              <div className="mock-result-card__content">
+                <Text strong>变更摘要：</Text>
+                <Paragraph>{reviewResult.summary}</Paragraph>
+
+                <Text strong>风险数量：</Text>
+                <Paragraph>{reviewResult.risks.length} 个</Paragraph>
+
+                <Text strong>优化建议数量：</Text>
+                <Paragraph>{reviewResult.suggestions.length} 条</Paragraph>
+
+                <Text strong>合并建议：</Text>
+                <Paragraph>{reviewResult.mergeAdvice}</Paragraph>
+              </div>
+            </Card>
+          ) : (
+            <Card className="mock-result-card">
+              <Text type="secondary">暂无分析结果。请输入 PR 链接或 diff 文本后点击“开始分析”。</Text>
+            </Card>
+          )}
         </section>
 
         <section className="home-section">
           <Title level={2}>核心功能</Title>
           <Paragraph className="home-section__desc">
-            当前版本先完成 PR Review 输入模块，后续将逐步实现 Mock Review、结果展示和 AI
+            当前版本已完成 PR Review 输入模块和 Mock 分析流程，后续将逐步实现结果展示和 AI
             分析能力。
           </Paragraph>
 
@@ -70,15 +125,15 @@ export function Home() {
 
           <Card>
             <Steps
-              current={0}
+              current={reviewResult ? 2 : isAnalyzing ? 1 : 0}
               items={[
                 {
                   title: '输入 PR',
                   description: '输入 GitHub PR 链接或粘贴 diff 文本',
                 },
                 {
-                  title: 'AI 分析',
-                  description: '系统分析代码变更内容和潜在风险',
+                  title: 'Mock 分析',
+                  description: '系统模拟分析代码变更内容',
                 },
                 {
                   title: '查看结果',
