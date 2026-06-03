@@ -36,3 +36,11 @@
   color: #5f6b7a;
   line-height: 1.7;
 }
+
+.mock-result-card {
+  border-radius: 16px;
+}
+
+.mock-result-card__content {
+  margin-top: 20px;
+}

@@ -5,3 +5,20 @@ export interface ReviewFormValues {
   prUrl?: string;
   diffText?: string;
 }
+
+export type ReviewRiskLevel = 'low' | 'medium' | 'high';
+
+export interface ReviewRisk {
+  id: string;
+  level: ReviewRiskLevel;
+  title: string;
+  description: string;
+}
+
+export interface ReviewResult {
+  summary: string;
+  risks: ReviewRisk[];
+  suggestions: string[];
+  mergeAdvice: string;
+  generatedAt: string;
+}

@@ -1,4 +1,4 @@
-import { Button, Card, Form, Input, Radio, Space, Typography, message } from 'antd';
+import { Button, Card, Form, Input, Radio, Space, Typography } from 'antd';
 import type { ReviewFormValues, ReviewInputType } from '../../types/review';
 import './style.css';
 
@@ -6,15 +6,18 @@ const { Paragraph, Text } = Typography;
 
 const DEFAULT_INPUT_TYPE: ReviewInputType = 'prUrl';
 
-export function ReviewForm() {
+interface ReviewFormProps {
+  loading?: boolean;
+  onSubmit: (values: ReviewFormValues) => void;
+}
+
+export function ReviewForm({ loading = false, onSubmit }: ReviewFormProps) {
   const [form] = Form.useForm<ReviewFormValues>();
 
   const inputType = Form.useWatch('inputType', form) ?? DEFAULT_INPUT_TYPE;
 
   const handleFinish = (values: ReviewFormValues) => {
-    console.log('当前输入内容：', values);
-
-    message.success('输入内容已通过校验，后续 PR 将接入分析流程');
+    onSubmit(values);
   };
 
   return (
@@ -30,7 +33,7 @@ export function ReviewForm() {
         onFinish={handleFinish}
       >
         <Form.Item label="分析方式" name="inputType">
-          <Radio.Group>
+          <Radio.Group disabled={loading}>
             <Radio.Button value="prUrl">GitHub PR 链接</Radio.Button>
             <Radio.Button value="diffText">Diff 文本</Radio.Button>
           </Radio.Group>
@@ -56,11 +59,7 @@ export function ReviewForm() {
               },
             ]}
           >
-            <Input
-              size="large"
-              placeholder="请输入 GitHub PR 链接"
-              allowClear
-            />
+            <Input size="large" placeholder="请输入 GitHub PR 链接" allowClear disabled={loading} />
           </Form.Item>
         ) : (
           <Form.Item
@@ -82,23 +81,24 @@ export function ReviewForm() {
               rows={8}
               placeholder="请粘贴 diff 文本，例如：diff --git a/src/App.tsx b/src/App.tsx ..."
               allowClear
+              disabled={loading}
             />
           </Form.Item>
         )}
 
         <Space>
-          <Button type="primary" htmlType="submit" size="large">
-            开始分析
+          <Button type="primary" htmlType="submit" size="large" loading={loading}>
+            {loading ? '分析中' : '开始分析'}
           </Button>
 
-          <Button size="large" onClick={() => form.resetFields()}>
+          <Button size="large" onClick={() => form.resetFields()} disabled={loading}>
             清空
           </Button>
         </Space>
 
         <div className="review-form-card__tip">
           <Text type="secondary">
-            当前 PR 只完成输入和校验，真正的 Review 分析会在后续 PR 中实现。
+            当前 PR 使用 Mock 数据模拟 Review 分析流程，真实 AI 分析将在后续 PR 中接入。
           </Text>
         </div>
       </Form>
