@@ -1,0 +1,13 @@
+.review-form-card {
+  border-radius: 16px;
+}
+
+.review-form-card__desc {
+  margin-bottom: 24px !important;
+  color: #5f6b7a;
+  line-height: 1.8;
+}
+
+.review-form-card__tip {
+  margin-top: 16px;
+}
