@@ -1,9 +1,17 @@
 .review-result-card {
-  border-radius: 16px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
 
 .review-result-card__content {
   width: 100%;
+}
+
+.review-result-card__overview {
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 12px;
 }
 
 .review-result-card__paragraph {

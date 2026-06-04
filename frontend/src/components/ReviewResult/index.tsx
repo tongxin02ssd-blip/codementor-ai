@@ -1,4 +1,5 @@
-import { Alert, Card, Empty, List, Skeleton, Space, Tag, Typography } from 'antd';
+import { CopyOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Empty, List, Skeleton, Space, Tag, Typography, message } from 'antd';
 import type { ReviewResult as ReviewResultType, ReviewRiskLevel } from '../../types/review';
 import './style.css';
 
@@ -35,6 +36,52 @@ function formatTime(time: string) {
   return new Date(time).toLocaleString();
 }
 
+function getRiskCount(result: ReviewResultType, level: ReviewRiskLevel) {
+  return result.risks.filter((risk) => risk.level === level).length;
+}
+
+function buildReviewText(result: ReviewResultType) {
+  const risksText = result.risks
+    .map((risk, index) => {
+      const levelLabel = riskLevelMap[risk.level].label;
+      return `${index + 1}. 【${levelLabel}】${risk.title}\n${risk.description}`;
+    })
+    .join('\n\n');
+
+  const suggestionsText = result.suggestions
+    .map((suggestion, index) => `${index + 1}. ${suggestion}`)
+    .join('\n');
+
+  return `# CodeMentor AI Review 结果
+
+## 变更摘要
+${result.summary}
+
+## 风险点识别
+${risksText || '暂未发现明显风险'}
+
+## 优化建议
+${suggestionsText || '暂无额外优化建议'}
+
+## 合并建议
+${result.mergeAdvice}
+
+## 生成时间
+${formatTime(result.generatedAt)}
+`;
+}
+
+async function copyReviewText(result: ReviewResultType) {
+  const text = buildReviewText(result);
+
+  try {
+    await navigator.clipboard.writeText(text);
+    message.success('Review 结果已复制');
+  } catch {
+    message.error('复制失败，请手动复制 Review 内容');
+  }
+}
+
 export function ReviewResult({ loading = false, error = null, result }: ReviewResultProps) {
   if (loading) {
     return (
@@ -69,8 +116,25 @@ export function ReviewResult({ loading = false, error = null, result }: ReviewRe
   }
 
   return (
-    <Card className="review-result-card" title="Review 结果">
+    <Card
+      className="review-result-card"
+      title="Review 结果"
+      extra={
+        <Button icon={<CopyOutlined />} onClick={() => copyReviewText(result)}>
+          复制结果
+        </Button>
+      }
+    >
       <Space direction="vertical" size="large" className="review-result-card__content">
+        <section className="review-result-card__overview">
+          <Space wrap>
+            <Tag color="red">高风险 {getRiskCount(result, 'high')}</Tag>
+            <Tag color="orange">中风险 {getRiskCount(result, 'medium')}</Tag>
+            <Tag color="green">低风险 {getRiskCount(result, 'low')}</Tag>
+            <Tag color="blue">优化建议 {result.suggestions.length}</Tag>
+          </Space>
+        </section>
+
         <section>
           <Title level={4}>变更摘要</Title>
           <Paragraph className="review-result-card__paragraph">{result.summary}</Paragraph>

@@ -1,13 +1,15 @@
 .home-layout {
   min-height: 100vh;
-  background: #f5f7fb;
+  background:
+    radial-gradient(circle at top, rgba(22, 119, 255, 0.08), transparent 36%),
+    #f5f7fb;
 }
 
 .home-content {
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 0 24px 48px;
+  padding: 0 24px 56px;
 }
 
 .home-section {
@@ -23,16 +25,34 @@
 
 .feature-card {
   height: 100%;
-  border-radius: 16px;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
 }
 
 .feature-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
   margin-bottom: 16px;
-  font-size: 32px;
+  font-size: 28px;
   color: #1677ff;
+  background: #eef5ff;
+  border-radius: 16px;
 }
 
 .feature-card__desc {
   color: #5f6b7a;
   line-height: 1.7;
+}
+
+@media (max-width: 768px) {
+  .home-content {
+    padding: 0 16px 40px;
+  }
+
+  .home-section {
+    margin-top: 24px;
+  }
 }
