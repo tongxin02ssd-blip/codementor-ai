@@ -6,6 +6,7 @@ const { Title, Paragraph, Text } = Typography;
 
 interface ReviewResultProps {
   loading?: boolean;
+  error?: string | null;
   result: ReviewResultType | null;
 }
 
@@ -34,11 +35,27 @@ function formatTime(time: string) {
   return new Date(time).toLocaleString();
 }
 
-export function ReviewResult({ loading = false, result }: ReviewResultProps) {
+export function ReviewResult({ loading = false, error = null, result }: ReviewResultProps) {
   if (loading) {
     return (
       <Card className="review-result-card" title="Review 结果">
         <Skeleton active paragraph={{ rows: 6 }} />
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="review-result-card" title="Review 结果">
+        <Alert
+          className="review-result-card__error"
+          type="error"
+          showIcon
+          message="分析失败"
+          description={error}
+        />
+
+        <Empty description="本次没有生成 Review 结果，请检查输入内容或稍后重试" />
       </Card>
     );
   }

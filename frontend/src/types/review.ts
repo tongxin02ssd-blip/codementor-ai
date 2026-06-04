@@ -4,6 +4,7 @@ export interface ReviewFormValues {
   inputType: ReviewInputType;
   prUrl?: string;
   diffText?: string;
+  shouldMockError?: boolean;
 }
 
 export type ReviewRiskLevel = 'low' | 'medium' | 'high';
