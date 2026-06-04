@@ -2,6 +2,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import { healthRouter } from './routes/health.routes';
+import { reviewRouter } from './routes/review.routes';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(
 app.use(express.json());
 
 app.use(healthRouter);
+app.use(reviewRouter);
 
 app.listen(PORT, () => {
   console.log(`CodeMentor AI backend is running at http://localhost:${PORT}`);
