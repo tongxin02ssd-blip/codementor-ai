@@ -14,6 +14,13 @@
 
 ```json
 {
+  "inputType": "prUrl",
   "prUrl": "https://github.com/owner/repo/pull/1",
-  "diffText": "diff --git ..."
+  "prInfo": {
+    "owner": "owner",
+    "repo": "repo",
+    "pullNumber": 1,
+    "url": "https://github.com/owner/repo/pull/1"
+  },
+  "shouldMockError": false
 }

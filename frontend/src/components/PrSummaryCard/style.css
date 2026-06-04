@@ -1,0 +1,25 @@
+.pr-summary-card {
+  margin-top: -8px;
+  margin-bottom: 24px;
+  background: #f8fafc;
+  border: 1px solid #e6f0ff;
+  border-radius: 14px;
+}
+
+.pr-summary-card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pr-summary-card__grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@media (max-width: 768px) {
+  .pr-summary-card__grid {
+    grid-template-columns: 1fr;
+  }
+}

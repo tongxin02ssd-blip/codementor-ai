@@ -1,4 +1,6 @@
 import { Button, Card, Form, Input, Radio, Space, Switch, Typography } from 'antd';
+import { PrSummaryCard } from '../PrSummaryCard';
+import { parseGithubPrUrl } from '../../utils/parseGithubPrUrl';
 import type { ReviewFormValues, ReviewInputType } from '../../types/review';
 import './style.css';
 
@@ -15,9 +17,16 @@ export function ReviewForm({ loading = false, onSubmit }: ReviewFormProps) {
   const [form] = Form.useForm<ReviewFormValues>();
 
   const inputType = Form.useWatch('inputType', form) ?? DEFAULT_INPUT_TYPE;
+  const prUrl = Form.useWatch('prUrl', form);
+  const parsedPrInfo = inputType === 'prUrl' ? parseGithubPrUrl(prUrl) : null;
 
   const handleFinish = (values: ReviewFormValues) => {
-    onSubmit(values);
+    const prInfo = values.inputType === 'prUrl' ? parseGithubPrUrl(values.prUrl) : null;
+
+    onSubmit({
+      ...values,
+      prInfo: prInfo ?? undefined,
+    });
   };
 
   return (
@@ -43,27 +52,31 @@ export function ReviewForm({ loading = false, onSubmit }: ReviewFormProps) {
         </Form.Item>
 
         {inputType === 'prUrl' ? (
-          <Form.Item
-            label="GitHub PR 链接"
-            name="prUrl"
-            extra="示例：https://github.com/facebook/react/pull/123"
-            rules={[
-              {
-                required: true,
-                message: '请输入 GitHub PR 链接',
-              },
-              {
-                type: 'url',
-                message: '请输入合法链接，例如 https://github.com/owner/repo/pull/1',
-              },
-              {
-                pattern: /^https:\/\/github\.com\/[^/]+\/[^/]+\/pull\/\d+\/?$/,
-                message: '请输入 GitHub Pull Request 链接',
-              },
-            ]}
-          >
-            <Input size="large" placeholder="请输入 GitHub PR 链接" allowClear disabled={loading} />
-          </Form.Item>
+          <>
+            <Form.Item
+              label="GitHub PR 链接"
+              name="prUrl"
+              extra="示例：https://github.com/facebook/react/pull/123"
+              rules={[
+                {
+                  required: true,
+                  message: '请输入 GitHub PR 链接',
+                },
+                {
+                  type: 'url',
+                  message: '请输入合法链接，例如 https://github.com/owner/repo/pull/1',
+                },
+                {
+                  pattern: /^https:\/\/github\.com\/[^/]+\/[^/]+\/pull\/\d+\/?$/,
+                  message: '请输入 GitHub Pull Request 链接',
+                },
+              ]}
+            >
+              <Input size="large" placeholder="请输入 GitHub PR 链接" allowClear disabled={loading} />
+            </Form.Item>
+
+            <PrSummaryCard prInfo={parsedPrInfo} />
+          </>
         ) : (
           <Form.Item
             label="Diff 文本"
@@ -110,7 +123,7 @@ export function ReviewForm({ loading = false, onSubmit }: ReviewFormProps) {
 
         <div className="review-form-card__tip">
           <Text type="secondary">
-            当前 PR 新增错误状态处理，可通过调试选项模拟分析失败。
+            当前版本支持解析 GitHub PR 链接，并展示 owner、repo 和 pull request 编号。
           </Text>
         </div>
       </Form>

@@ -1,10 +1,18 @@
 export type ReviewInputType = 'prUrl' | 'diffText';
 
+export interface GithubPrInfo {
+  owner: string;
+  repo: string;
+  pullNumber: number;
+  url: string;
+}
+
 export interface ReviewRequestBody {
   inputType: ReviewInputType;
   prUrl?: string;
   diffText?: string;
   shouldMockError?: boolean;
+  prInfo?: GithubPrInfo;
 }
 
 export type ReviewRiskLevel = 'low' | 'medium' | 'high';
