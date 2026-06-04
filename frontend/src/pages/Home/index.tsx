@@ -9,7 +9,7 @@ import {
 import { PageHeader } from '../../components/PageHeader';
 import { ReviewForm } from '../../components/ReviewForm';
 import { ReviewResult } from '../../components/ReviewResult';
-import { createMockReviewResult } from '../../mocks/mockReview';
+import { analyzeReview } from '../../services/reviewService';
 import type { ReviewFormValues, ReviewResult as ReviewResultType } from '../../types/review';
 import './style.css';
 
@@ -43,17 +43,15 @@ export function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [reviewResult, setReviewResult] = useState<ReviewResultType | null>(null);
 
-  const handleAnalyze = (values: ReviewFormValues) => {
+  const handleAnalyze = async (values: ReviewFormValues) => {
     setIsAnalyzing(true);
     setReviewResult(null);
 
-    window.setTimeout(() => {
-      const mockResult = createMockReviewResult(values);
+    const result = await analyzeReview(values);
 
-      setReviewResult(mockResult);
-      setIsAnalyzing(false);
-      message.success('Mock Review 分析完成');
-    }, 1000);
+    setReviewResult(result);
+    setIsAnalyzing(false);
+    message.success('Mock Review 分析完成');
   };
 
   return (
