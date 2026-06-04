@@ -1,18 +1,33 @@
-import { createMockReviewResult } from '../mocks/mockReview';
+import axios from 'axios';
+import { request } from './request';
 import type { ReviewFormValues, ReviewResult } from '../types/review';
 
-const MOCK_REQUEST_DELAY = 1000;
+interface BackendErrorResponse {
+  message?: string;
+}
 
-export function analyzeReview(values: ReviewFormValues): Promise<ReviewResult> {
-  return new Promise((resolve, reject) => {
-    window.setTimeout(() => {
-      if (values.shouldMockError) {
-        reject(new Error('模拟分析失败：当前请求没有成功返回 Review 结果，请稍后重试。'));
-        return;
-      }
+function getServiceErrorMessage(error: unknown) {
+  if (axios.isAxiosError<BackendErrorResponse>(error)) {
+    return (
+      error.response?.data?.message ||
+      error.message ||
+      'Review 分析请求失败，请稍后重试。'
+    );
+  }
 
-      const result = createMockReviewResult(values);
-      resolve(result);
-    }, MOCK_REQUEST_DELAY);
-  });
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'Review 分析请求失败，请稍后重试。';
+}
+
+export async function analyzeReview(values: ReviewFormValues): Promise<ReviewResult> {
+  try {
+    const response = await request.post<ReviewResult>('/api/review', values);
+
+    return response.data;
+  } catch (error) {
+    throw new Error(getServiceErrorMessage(error));
+  }
 }
