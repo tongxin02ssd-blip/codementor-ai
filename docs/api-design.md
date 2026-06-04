@@ -24,3 +24,22 @@
   },
   "shouldMockError": false
 }
+
+## AI Review 说明
+
+后端 `/api/review` 接口会优先尝试读取以下环境变量：
+
+- `AI_API_KEY`
+- `AI_API_BASE_URL`
+- `AI_MODEL`
+- `AI_ENABLE_MOCK_FALLBACK`
+
+如果未配置 AI 相关环境变量，或 AI 接口调用失败，后端会自动降级返回 Mock Review 结果，保证项目仍然可以正常演示。
+
+当前接口返回结构仍保持：
+
+- `summary`
+- `risks`
+- `suggestions`
+- `mergeAdvice`
+- `generatedAt`

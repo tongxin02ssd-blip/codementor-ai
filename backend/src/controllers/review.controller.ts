@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { createBackendMockReviewResult } from '../services/mockReview.service';
+import { analyzeReviewWithAi } from '../services/aiReview.service';
 import type { ErrorResponse, ReviewRequestBody, ReviewResult } from '../types/review';
 
 function validateReviewRequest(body: ReviewRequestBody) {
@@ -22,7 +22,15 @@ function validateReviewRequest(body: ReviewRequestBody) {
   return null;
 }
 
-export function handleReviewAnalyze(
+function getControllerErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return '后端分析失败：当前请求没有成功生成 Review 结果。';
+}
+
+export async function handleReviewAnalyze(
   req: Request<unknown, ReviewResult | ErrorResponse, ReviewRequestBody>,
   res: Response<ReviewResult | ErrorResponse>,
 ) {
@@ -42,7 +50,13 @@ export function handleReviewAnalyze(
     return;
   }
 
-  const result = createBackendMockReviewResult(req.body);
+  try {
+    const result = await analyzeReviewWithAi(req.body);
 
-  res.json(result);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      message: getControllerErrorMessage(error),
+    });
+  }
 }
