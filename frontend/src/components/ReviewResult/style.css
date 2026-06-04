@@ -1,0 +1,21 @@
+.review-result-card {
+  border-radius: 16px;
+}
+
+.review-result-card__content {
+  width: 100%;
+}
+
+.review-result-card__paragraph {
+  color: #4b5563;
+  line-height: 1.8;
+}
+
+.review-result-card__list {
+  background: #ffffff;
+}
+
+.review-result-card__footer {
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
