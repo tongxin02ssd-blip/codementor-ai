@@ -1,4 +1,4 @@
-import { Button, Card, Form, Input, Radio, Space, Typography } from 'antd';
+import { Button, Card, Form, Input, Radio, Space, Switch, Typography } from 'antd';
 import type { ReviewFormValues, ReviewInputType } from '../../types/review';
 import './style.css';
 
@@ -29,7 +29,10 @@ export function ReviewForm({ loading = false, onSubmit }: ReviewFormProps) {
       <Form<ReviewFormValues>
         form={form}
         layout="vertical"
-        initialValues={{ inputType: DEFAULT_INPUT_TYPE }}
+        initialValues={{
+          inputType: DEFAULT_INPUT_TYPE,
+          shouldMockError: false,
+        }}
         onFinish={handleFinish}
       >
         <Form.Item label="分析方式" name="inputType">
@@ -86,6 +89,15 @@ export function ReviewForm({ loading = false, onSubmit }: ReviewFormProps) {
           </Form.Item>
         )}
 
+        <Form.Item
+          label="调试选项"
+          name="shouldMockError"
+          valuePropName="checked"
+          extra="开启后，点击开始分析会模拟一次失败请求，用于测试错误状态。"
+        >
+          <Switch checkedChildren="失败" unCheckedChildren="正常" disabled={loading} />
+        </Form.Item>
+
         <Space>
           <Button type="primary" htmlType="submit" size="large" loading={loading}>
             {loading ? '分析中' : '开始分析'}
@@ -98,7 +110,7 @@ export function ReviewForm({ loading = false, onSubmit }: ReviewFormProps) {
 
         <div className="review-form-card__tip">
           <Text type="secondary">
-            当前 PR 使用 Mock 数据模拟 Review 分析流程，真实 AI 分析将在后续 PR 中接入。
+            当前 PR 新增错误状态处理，可通过调试选项模拟分析失败。
           </Text>
         </div>
       </Form>

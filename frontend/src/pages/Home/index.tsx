@@ -39,19 +39,37 @@ const featureList = [
   },
 ];
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return '分析失败：系统暂时无法生成 Review 结果，请稍后重试。';
+}
+
 export function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [reviewResult, setReviewResult] = useState<ReviewResultType | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleAnalyze = async (values: ReviewFormValues) => {
     setIsAnalyzing(true);
     setReviewResult(null);
+    setErrorMessage(null);
 
-    const result = await analyzeReview(values);
+    try {
+      const result = await analyzeReview(values);
 
-    setReviewResult(result);
-    setIsAnalyzing(false);
-    message.success('Mock Review 分析完成');
+      setReviewResult(result);
+      message.success('Mock Review 分析完成');
+    } catch (error) {
+      const currentErrorMessage = getErrorMessage(error);
+
+      setErrorMessage(currentErrorMessage);
+      message.error(currentErrorMessage);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -64,14 +82,13 @@ export function Home() {
         </section>
 
         <section className="home-section">
-          <ReviewResult loading={isAnalyzing} result={reviewResult} />
+          <ReviewResult loading={isAnalyzing} error={errorMessage} result={reviewResult} />
         </section>
 
         <section className="home-section">
           <Title level={2}>核心功能</Title>
           <Paragraph className="home-section__desc">
-            当前版本已完成 PR Review 输入模块、Mock 分析流程和结构化结果展示，后续将逐步接入
-            API 请求封装和真实 AI 分析能力。
+            当前版本已完成 PR Review 输入模块、Mock 分析流程、结构化结果展示和异常状态处理。
           </Paragraph>
 
           <Row gutter={[16, 16]}>
@@ -93,6 +110,7 @@ export function Home() {
           <Card>
             <Steps
               current={reviewResult ? 2 : isAnalyzing ? 1 : 0}
+              status={errorMessage ? 'error' : 'process'}
               items={[
                 {
                   title: '输入 PR',
@@ -100,7 +118,7 @@ export function Home() {
                 },
                 {
                   title: 'Mock 分析',
-                  description: '系统模拟分析代码变更内容',
+                  description: errorMessage ? '分析失败，请检查输入或稍后重试' : '系统模拟分析代码变更内容',
                 },
                 {
                   title: '查看结果',
