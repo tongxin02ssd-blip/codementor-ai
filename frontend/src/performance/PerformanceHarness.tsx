@@ -11,7 +11,7 @@ const result = fixture.reviewResult as ReviewResult;
 
 export function PerformanceHarness() {
   const [selectedFilePath, setSelectedFilePath] = useState(files[0].filePath);
-  const [selectedIssue, setSelectedIssue] = useState<ReviewIssue | null>(null);
+  const [selectedIssue, setSelectedIssue] = useState<ReviewIssue | null>(result.issues[0]);
   const selectedFile = files.find((file) => file.filePath === selectedFilePath) ?? files[0];
 
   const selectIssue = (issue: ReviewIssue) => {
