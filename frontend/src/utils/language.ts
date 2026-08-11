@@ -8,7 +8,7 @@ const LANGUAGE_BY_EXTENSION: Record<string, string> = {
   html: 'html',
   java: 'java',
   js: 'javascript',
-  json: 'json',
+  json: 'javascript',
   jsx: 'javascript',
   kt: 'kotlin',
   less: 'less',

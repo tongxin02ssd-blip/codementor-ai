@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Empty, Spin } from 'antd';
-import { DiffViewer } from '../../components/DiffViewer';
 import { FileExplorer } from '../../components/FileExplorer';
 import { ReviewPanel } from '../../components/ReviewPanel';
 import { ReviewToolbar } from '../../components/ReviewToolbar';
@@ -16,6 +15,8 @@ import type {
 } from '../../types/review';
 import { DiffParseError, parseUnifiedDiff } from '../../utils/parseUnifiedDiff';
 import './style.css';
+
+const DiffViewer = lazy(() => import('../../components/DiffViewer').then((module) => ({ default: module.DiffViewer })));
 
 interface ReviewMutationVariables {
   requestId: number;
@@ -192,8 +193,10 @@ export function ReviewWorkspacePage() {
           <div className="workspace-grid">
             <FileExplorer files={workspace.files} selectedFilePath={selectedFile.filePath}
               onSelect={(filePath) => { setSelectedFilePath(filePath); setSelectedIssueId(null); }} />
-            <DiffViewer key={workspace.pullRequest.id} workspaceId={workspace.pullRequest.id}
-              file={selectedFile} activeIssue={activeIssue} />
+            <Suspense fallback={<div className="editor-loading"><Spin /><span>正在加载 Monaco Diff Editor…</span></div>}>
+              <DiffViewer key={workspace.pullRequest.id} workspaceId={workspace.pullRequest.id}
+                file={selectedFile} activeIssue={activeIssue} />
+            </Suspense>
             <ReviewPanel result={currentReview} isLoading={isReviewing} error={reviewError}
               activeIssueId={selectedIssueId} onIssueSelect={selectIssue} onRetry={startReview} />
           </div>

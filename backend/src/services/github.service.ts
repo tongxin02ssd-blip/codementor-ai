@@ -99,7 +99,7 @@ function detectLanguage(filePath: string) {
   const extension = filePath.split('.').pop()?.toLowerCase();
   const languages: Record<string, string> = {
     c: 'c', cc: 'cpp', cpp: 'cpp', cs: 'csharp', css: 'css', go: 'go', html: 'html',
-    java: 'java', js: 'javascript', json: 'json', jsx: 'javascript', kt: 'kotlin', md: 'markdown',
+    java: 'java', js: 'javascript', json: 'javascript', jsx: 'javascript', kt: 'kotlin', md: 'markdown',
     php: 'php', py: 'python', rb: 'ruby', rs: 'rust', scss: 'scss', sh: 'shell', sql: 'sql',
     ts: 'typescript', tsx: 'typescript', vue: 'html', xml: 'xml', yaml: 'yaml', yml: 'yaml',
   };

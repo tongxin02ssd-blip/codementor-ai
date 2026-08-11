@@ -48,7 +48,20 @@ Vite 同时报告主入口 chunk 超过 500 kB。这里的直接原因是 `Revie
 
 ## After
 
-待完成基于上述问题的代码拆分后，使用完全相同命令和 fixture 复测。
+优化只针对基线暴露的问题：产品入口通过 `React.lazy` 延迟加载 `DiffViewer`；Monaco 改用只读 Diff 所需的 editor API、editor worker 和有限语言 tokenizer，不再加载 TypeScript/JSON/CSS/HTML 智能提示 worker。性能测量页仍直接复用相同的 `DiffViewer`，不会成为生产业务 fallback。
+
+在相同环境、相同 fixture 和相同 `npm run perf:bundle` 命令下复测：
+
+| 指标 | Before | After | 变化 |
+| --- | ---: | ---: | ---: |
+| 首屏入口 JS（原始） | 4,284,289 bytes | 591,414 bytes | -86.20% |
+| 首屏入口 JS（gzip） | 1,127,355 bytes | 192,600 bytes | -82.92% |
+| production JS 总量 | 14,095,329 bytes | 4,587,211 bytes | -67.46% |
+| JS chunk 数量 | 92 | 23 | -69 |
+
+Monaco 的编辑器核心现在位于独立异步 chunk，只在用户成功取得或解析 Diff 后下载。Vite 仍会提示大型 chunk：异步 Monaco editor core 以及当前 UI vendor 入口仍超过默认 500 kB；这是真实的剩余限制，没有通过人为调高 warning 阈值隐藏。
+
+核心交互渲染耗时仍需浏览器手动测量；由于没有对应 Before profile，本次不根据 bundle 结果推断交互耗时改善。
 
 ## 仍需手动测量
 
