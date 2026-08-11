@@ -8,6 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest run",
+    "fixture:generate": "node scripts/generate-performance-fixture.mjs",
+    "fixture:verify": "node scripts/verify-performance-fixture.mjs",
+    "perf:bundle": "npm run build && node scripts/report-bundle.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
