@@ -1,0 +1,10 @@
+.review-workspace-page { height: 100vh; min-height: 620px; display: flex; flex-direction: column; color: #252a31; background: #f6f8fa; }
+.review-workspace__content { min-height: 0; flex: 1; position: relative; }
+.workspace-grid { width: 100%; height: 100%; display: grid; grid-template-columns: minmax(220px,250px) minmax(440px,1fr) minmax(310px,360px); overflow: hidden; }
+.workspace-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 30px; color: #7a828e; }
+.workspace-state strong { margin-top: 8px; color: #343a43; font-size: 14px; }
+.workspace-state span, .workspace-state p { max-width: 520px; margin: 0; font-size: 12px; text-align: center; }
+.workspace-state--error .ant-alert { width: min(620px,100%); }
+@media (max-width: 1050px) {
+  .workspace-grid { grid-template-columns: 210px minmax(430px,1fr) 310px; overflow-x: auto; }
+}
