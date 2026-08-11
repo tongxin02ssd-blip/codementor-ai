@@ -2,11 +2,12 @@
   "name": "codementor-ai-backend",
   "version": "1.0.0",
   "description": "Backend service for CodeMentor AI PR Review assistant",
-  "main": "dist/app.js",
+  "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx watch src/app.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "test": "tsx --test src/**/*.test.ts",
+    "start": "node dist/server.js"
   },
   "keywords": [
     "express",

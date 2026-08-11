@@ -27,15 +27,17 @@ function isSeverity(value: unknown): value is ReviewSeverity {
   return value === 'high' || value === 'medium' || value === 'low';
 }
 
-function isReviewIssue(value: unknown, filePaths: Set<string>): value is ReviewIssue {
+function isReviewIssue(value: unknown, files: Map<string, number>): value is ReviewIssue {
   if (!value || typeof value !== 'object') return false;
   const issue = value as Record<string, unknown>;
+  const maxLineNumber = typeof issue.filePath === 'string' ? files.get(issue.filePath) : undefined;
   return !('category' in issue) &&
     isNonEmptyString(issue.id) &&
     isNonEmptyString(issue.filePath) &&
-    filePaths.has(issue.filePath) &&
+    typeof maxLineNumber === 'number' &&
     Number.isInteger(issue.lineNumber) &&
     Number(issue.lineNumber) > 0 &&
+    Number(issue.lineNumber) <= maxLineNumber &&
     isSeverity(issue.severity) &&
     isNonEmptyString(issue.title) &&
     isNonEmptyString(issue.description) &&
@@ -65,9 +67,12 @@ function parseAiResult(content: string, request: ReviewRequestBody): ReviewResul
     throw new AppError(502, 'AI_RESPONSE_INVALID', 'AI 返回的 Review 结构无效。', 'review');
   }
   const payload = parsed as Partial<AiReviewPayload>;
-  const filePaths = new Set(request.files.map((file) => file.filePath));
+  const files = new Map(request.files.map((file) => [
+    file.filePath,
+    Math.max(file.oldContent.split('\n').length, file.newContent.split('\n').length),
+  ]));
   if (!isNonEmptyString(payload.summary) || !Array.isArray(payload.issues) ||
-      !payload.issues.every((issue) => isReviewIssue(issue, filePaths))) {
+      !payload.issues.every((issue) => isReviewIssue(issue, files))) {
     throw new AppError(502, 'AI_RESPONSE_INVALID', 'AI 返回字段缺失、类型错误或引用了未知文件。', 'review');
   }
   const ids = new Set(payload.issues.map((issue) => issue.id));

@@ -3,14 +3,35 @@ import { analyzeReviewWithAi } from '../services/aiReview.service';
 import type { ErrorResponse, ReviewRequestBody, ReviewResult } from '../types/review';
 import { AppError, toAppError } from '../utils/AppError';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object';
+}
+
+function isPullRequest(value: unknown) {
+  if (!isRecord(value)) return false;
+  return typeof value.id === 'string' &&
+    (value.sourceType === 'github' || value.sourceType === 'manual') &&
+    typeof value.title === 'string' &&
+    typeof value.author === 'string' &&
+    typeof value.createdAt === 'string';
+}
+
+function isDiffFile(value: unknown) {
+  if (!isRecord(value)) return false;
+  return typeof value.filePath === 'string' && value.filePath.length > 0 &&
+    (value.changeType === 'added' || value.changeType === 'modified' ||
+      value.changeType === 'deleted' || value.changeType === 'renamed') &&
+    typeof value.language === 'string' &&
+    Number.isInteger(value.additions) && Number.isInteger(value.deletions) &&
+    typeof value.oldContent === 'string' && typeof value.newContent === 'string' &&
+    typeof value.patch === 'string' && Array.isArray(value.lines);
+}
+
 function validateReviewRequest(body: unknown): body is ReviewRequestBody {
-  if (!body || typeof body !== 'object') return false;
+  if (!isRecord(body)) return false;
   const value = body as Partial<ReviewRequestBody>;
-  if (!value.pullRequest || !Array.isArray(value.files) || value.files.length === 0 || value.files.length > 100) return false;
-  return value.files.every((file) =>
-    file && typeof file.filePath === 'string' && typeof file.oldContent === 'string' &&
-    typeof file.newContent === 'string' && typeof file.patch === 'string',
-  );
+  return isPullRequest(value.pullRequest) && Array.isArray(value.files) &&
+    value.files.length > 0 && value.files.length <= 100 && value.files.every(isDiffFile);
 }
 
 export async function handleReviewAnalyze(
