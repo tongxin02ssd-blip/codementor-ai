@@ -1,11 +1,11 @@
-.review-workspace-page { height: 100vh; min-height: 620px; display: flex; flex-direction: column; color: #252a31; background: #f6f8fa; }
+.review-workspace-page { height: 100vh; min-height: 620px; display: flex; flex-direction: column; color: var(--text-primary); background: var(--panel-bg); }
 .review-workspace__content { min-height: 0; flex: 1; position: relative; }
-.workspace-grid { width: 100%; height: 100%; display: grid; grid-template-columns: minmax(220px,250px) minmax(440px,1fr) minmax(310px,360px); overflow: hidden; }
-.workspace-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 30px; color: #7a828e; }
-.workspace-state strong { margin-top: 8px; color: #343a43; font-size: 14px; }
-.workspace-state span, .workspace-state p { max-width: 520px; margin: 0; font-size: 12px; text-align: center; }
+.workspace-grid { width: 100%; height: 100%; display: grid; grid-template-columns: clamp(240px,14vw,268px) minmax(520px,1fr) clamp(350px,20vw,388px); overflow: hidden; }
+.workspace-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-sm); padding: 32px; color: var(--text-secondary); }
+.workspace-state strong { margin-top: var(--space-sm); color: var(--text-primary); font-size: var(--font-size-base); }
+.workspace-state span, .workspace-state p { max-width: 560px; margin: 0; font-size: var(--font-size-base); line-height: 1.6; text-align: center; }
 .workspace-state--error .ant-alert { width: min(620px,100%); }
-.editor-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #7a828e; background: #fff; font-size: 12px; }
-@media (max-width: 1050px) {
-  .workspace-grid { grid-template-columns: 210px minmax(430px,1fr) 310px; overflow-x: auto; }
+.editor-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-secondary); background: var(--surface-bg); font-size: var(--font-size-base); }
+@media (max-width: 1180px) {
+  .workspace-grid { grid-template-columns: 236px minmax(520px,1fr) 340px; overflow-x: auto; }
 }

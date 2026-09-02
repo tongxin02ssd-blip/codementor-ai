@@ -1,5 +1,6 @@
 import { Alert, Button, Empty, Skeleton, Tag } from 'antd';
 import type { ReviewIssue, ReviewResult, ReviewSeverity } from '../../types/review';
+import { splitReviewText } from '../../utils/reviewText';
 import './style.css';
 
 interface ReviewPanelProps {
@@ -16,6 +17,12 @@ const severityConfig: Record<ReviewSeverity, { label: string; color: string }> =
   medium: { label: 'Medium', color: 'orange' },
   low: { label: 'Low', color: 'default' },
 };
+
+function ReviewText({ value }: { value: string }) {
+  return splitReviewText(value).map((segment, index) => segment.type === 'code'
+    ? <code className="review-inline-code" key={`${segment.type}-${index}`}>{segment.value}</code>
+    : segment.value);
+}
 
 export function ReviewPanel({ result, isLoading, error, activeIssueId, onIssueSelect, onRetry }: ReviewPanelProps) {
   return (
@@ -43,7 +50,7 @@ export function ReviewPanel({ result, isLoading, error, activeIssueId, onIssueSe
           <>
             <section className="review-panel__summary">
               <strong>Review summary</strong>
-              <p>{result.summary}</p>
+              <p><ReviewText value={result.summary} /></p>
             </section>
             {result.issues.length === 0 ? (
               <Alert type="success" showIcon message="未发现明确问题" description="AI 没有在本次变更中识别出可定位的 Review Issue。" />
@@ -54,11 +61,12 @@ export function ReviewPanel({ result, isLoading, error, activeIssueId, onIssueSe
                   return (
                     <button key={issue.id} type="button"
                       className={`issue-card issue-card--${issue.severity}${activeIssueId === issue.id ? ' issue-card--active' : ''}`}
+                      aria-pressed={activeIssueId === issue.id}
                       onClick={() => onIssueSelect(issue)}>
-                      <div className="issue-card__header"><Tag color={severity.color}>{severity.label}</Tag><strong>{issue.title}</strong></div>
-                      <code>{issue.filePath}:{issue.lineNumber}</code>
-                      <p>{issue.description}</p>
-                      <div className="issue-card__suggestion"><span>建议</span>{issue.suggestion}</div>
+                      <div className="issue-card__header"><Tag color={severity.color}>{severity.label}</Tag><strong><ReviewText value={issue.title} /></strong></div>
+                      <code className="issue-card__location" title={`${issue.filePath}:${issue.lineNumber}`}>{issue.filePath}:{issue.lineNumber}</code>
+                      <p className="issue-card__description"><ReviewText value={issue.description} /></p>
+                      <div className="issue-card__suggestion"><strong>建议</strong><p><ReviewText value={issue.suggestion} /></p></div>
                     </button>
                   );
                 })}

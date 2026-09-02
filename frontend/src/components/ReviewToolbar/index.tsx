@@ -50,7 +50,7 @@ export function ReviewToolbar(props: ReviewToolbarProps) {
         <div className="review-toolbar__brand">
           <span className="review-toolbar__mark">CM</span>
           <span>CodeMentor</span>
-          <Tag bordered={false}>V2</Tag>
+          <Tag variant="filled">V2</Tag>
         </div>
         <div className="review-toolbar__context">
           {pullRequest ? (

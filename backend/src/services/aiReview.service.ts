@@ -14,6 +14,7 @@ interface AiReviewPayload {
 
 const DEFAULT_TIMEOUT_MS = 90_000;
 const MAX_PROMPT_CHARACTERS = 240_000;
+const HAN_CHARACTER_PATTERN = /\p{Script=Han}/u;
 
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.replace(/\/+$/, '');
@@ -42,6 +43,34 @@ function isReviewIssue(value: unknown, files: Map<string, number>): value is Rev
     isNonEmptyString(issue.title) &&
     isNonEmptyString(issue.description) &&
     isNonEmptyString(issue.suggestion);
+}
+
+function hasInvalidUnicode(value: string) {
+  if (value.includes('\uFFFD')) return true;
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code >= 0xD800 && code <= 0xDBFF) {
+      const next = value.charCodeAt(index + 1);
+      if (!(next >= 0xDC00 && next <= 0xDFFF)) return true;
+      index += 1;
+    } else if (code >= 0xDC00 && code <= 0xDFFF) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function validateReviewText(payload: AiReviewPayload) {
+  const textFields = [
+    payload.summary,
+    ...payload.issues.flatMap((issue) => [issue.title, issue.description, issue.suggestion]),
+  ];
+  if (textFields.some(hasInvalidUnicode)) {
+    throw new AppError(502, 'AI_RESPONSE_ENCODING_INVALID', 'AI 返回的 Review 包含无效或损坏的 Unicode 文本，请重新分析。', 'review');
+  }
+  if (textFields.some((value) => !HAN_CHARACTER_PATTERN.test(value))) {
+    throw new AppError(502, 'AI_RESPONSE_LANGUAGE_INVALID', 'AI 返回的 Review 未按要求使用简体中文，请重新分析。', 'review');
+  }
 }
 
 function extractJson(content: string) {
@@ -79,6 +108,7 @@ function parseAiResult(content: string, request: ReviewRequestBody): ReviewResul
   if (ids.size !== payload.issues.length) {
     throw new AppError(502, 'AI_RESPONSE_INVALID', 'AI 返回了重复的 Review Issue id。', 'review');
   }
+  validateReviewText(payload as AiReviewPayload);
   return {
     reviewId: randomUUID(),
     summary: payload.summary,
@@ -119,7 +149,7 @@ export async function analyzeReviewWithAi(values: ReviewRequestBody, requestSign
         model,
         temperature: 0.1,
         messages: [
-          { role: 'system', content: 'You are a rigorous code reviewer. Return valid JSON only.' },
+          { role: 'system', content: '你是一名严谨的代码审查专家。除代码标识符、路径和技术专有名词外，所有审查说明必须使用简体中文。只返回符合用户指定结构的有效 JSON。' },
           { role: 'user', content: prompt },
         ],
       }),

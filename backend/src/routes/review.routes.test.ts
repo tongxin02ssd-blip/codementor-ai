@@ -7,6 +7,21 @@ import { app } from '../app';
 let server: Server;
 let baseUrl: string;
 
+async function startAiServer(content: string) {
+  const aiServer = createServer((_request, response) => {
+    response.setHeader('Content-Type', 'application/json; charset=utf-8');
+    response.end(JSON.stringify({ choices: [{ message: { content } }] }));
+  });
+  aiServer.listen(0);
+  await new Promise<void>((resolve) => aiServer.once('listening', resolve));
+  const address = aiServer.address() as AddressInfo;
+  return { aiServer, baseUrl: `http://127.0.0.1:${address.port}` };
+}
+
+async function closeServer(target: Server) {
+  await new Promise<void>((resolve, reject) => target.close((error) => error ? reject(error) : resolve()));
+}
+
 before(async () => {
   server = app.listen(0);
   await new Promise<void>((resolve) => server.once('listening', resolve));
@@ -33,6 +48,7 @@ describe('POST /api/reviews', () => {
     });
     const payload = await response.json() as { error: { code: string; stage: string } };
     assert.equal(response.status, 400);
+    assert.match(response.headers.get('content-type') ?? '', /application\/json; charset=utf-8/i);
     assert.deepEqual(payload.error, {
       code: 'INVALID_REVIEW_INPUT',
       message: 'Review 请求必须包含有效的 PullRequest 和 DiffFile[]。',
@@ -61,22 +77,14 @@ describe('POST /api/reviews', () => {
   });
 
   it('sends the real Diff to an AI endpoint and validates the structured response', async () => {
-    const aiServer = createServer((_request, response) => {
-      response.setHeader('Content-Type', 'application/json');
-      response.end(JSON.stringify({
-        choices: [{ message: { content: JSON.stringify({
-          summary: 'One concrete issue found.',
-          issues: [{ id: 'issue-1', filePath: 'src/test.ts', lineNumber: 1, severity: 'medium',
-            title: 'Changed constant', description: 'The behavior changed.', suggestion: 'Confirm the new value.' }],
-        }) } }],
-      }));
-    });
-    aiServer.listen(0);
-    await new Promise<void>((resolve) => aiServer.once('listening', resolve));
-    const aiAddress = aiServer.address() as AddressInfo;
+    const { aiServer, baseUrl: aiBaseUrl } = await startAiServer(JSON.stringify({
+      summary: '发现一个具体问题。',
+      issues: [{ id: 'issue-1', filePath: 'src/test.ts', lineNumber: 1, severity: 'medium',
+        title: '常量值发生变化', description: '该变更会改变现有行为。', suggestion: '请确认新值符合预期。' }],
+    }));
     const previous = [process.env.AI_API_KEY, process.env.AI_API_BASE_URL, process.env.AI_MODEL];
     process.env.AI_API_KEY = 'test-key';
-    process.env.AI_API_BASE_URL = `http://127.0.0.1:${aiAddress.port}`;
+    process.env.AI_API_BASE_URL = aiBaseUrl;
     process.env.AI_MODEL = 'test-model';
     try {
       const response = await fetch(`${baseUrl}/api/reviews`, {
@@ -87,11 +95,57 @@ describe('POST /api/reviews', () => {
       assert.equal(payload.status, 'completed');
       assert.deepEqual(payload.issues[0], {
         id: 'issue-1', filePath: 'src/test.ts', lineNumber: 1, severity: 'medium',
-        title: 'Changed constant', description: 'The behavior changed.', suggestion: 'Confirm the new value.',
+        title: '常量值发生变化', description: '该变更会改变现有行为。', suggestion: '请确认新值符合预期。',
       });
     } finally {
       [process.env.AI_API_KEY, process.env.AI_API_BASE_URL, process.env.AI_MODEL] = previous;
-      await new Promise<void>((resolve, reject) => aiServer.close((error) => error ? reject(error) : resolve()));
+      await closeServer(aiServer);
+    }
+  });
+
+  it('rejects an AI review whose user-facing fields are entirely English', async () => {
+    const { aiServer, baseUrl: aiBaseUrl } = await startAiServer(JSON.stringify({
+      summary: 'One concrete issue found.',
+      issues: [{ id: 'issue-1', filePath: 'src/test.ts', lineNumber: 1, severity: 'medium',
+        title: 'Changed constant', description: 'The behavior changed.', suggestion: 'Confirm the new value.' }],
+    }));
+    const previous = [process.env.AI_API_KEY, process.env.AI_API_BASE_URL, process.env.AI_MODEL];
+    process.env.AI_API_KEY = 'test-key';
+    process.env.AI_API_BASE_URL = aiBaseUrl;
+    process.env.AI_MODEL = 'test-model';
+    try {
+      const response = await fetch(`${baseUrl}/api/reviews`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(validRequest),
+      });
+      const payload = await response.json() as { error: { code: string; message: string } };
+      assert.equal(response.status, 502);
+      assert.equal(payload.error.code, 'AI_RESPONSE_LANGUAGE_INVALID');
+      assert.match(payload.error.message, /简体中文/);
+    } finally {
+      [process.env.AI_API_KEY, process.env.AI_API_BASE_URL, process.env.AI_MODEL] = previous;
+      await closeServer(aiServer);
+    }
+  });
+
+  it('rejects replacement characters instead of returning corrupted review text', async () => {
+    const { aiServer, baseUrl: aiBaseUrl } = await startAiServer(JSON.stringify({
+      summary: '审查内容包含损坏字符\uFFFD。',
+      issues: [],
+    }));
+    const previous = [process.env.AI_API_KEY, process.env.AI_API_BASE_URL, process.env.AI_MODEL];
+    process.env.AI_API_KEY = 'test-key';
+    process.env.AI_API_BASE_URL = aiBaseUrl;
+    process.env.AI_MODEL = 'test-model';
+    try {
+      const response = await fetch(`${baseUrl}/api/reviews`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(validRequest),
+      });
+      const payload = await response.json() as { error: { code: string } };
+      assert.equal(response.status, 502);
+      assert.equal(payload.error.code, 'AI_RESPONSE_ENCODING_INVALID');
+    } finally {
+      [process.env.AI_API_KEY, process.env.AI_API_BASE_URL, process.env.AI_MODEL] = previous;
+      await closeServer(aiServer);
     }
   });
 });

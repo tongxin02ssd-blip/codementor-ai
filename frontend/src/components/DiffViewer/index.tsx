@@ -58,9 +58,9 @@ export function DiffViewer({ workspaceId, file, activeIssue }: DiffViewerProps) 
     const models = modelsRef.current;
     editorRef.current = monaco.editor.createDiffEditor(containerRef.current, {
       automaticLayout: true,
-      fontFamily: 'SFMono-Regular, Consolas, Liberation Mono, monospace',
-      fontSize: 13,
-      lineHeight: 20,
+      fontFamily: '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace',
+      fontSize: 14,
+      lineHeight: 22,
       minimap: { enabled: false },
       renderSideBySide: true,
       renderOverviewRuler: true,
@@ -70,7 +70,7 @@ export function DiffViewer({ workspaceId, file, activeIssue }: DiffViewerProps) 
       smoothScrolling: true,
       ignoreTrimWhitespace: false,
       glyphMargin: true,
-      padding: { top: 8, bottom: 8 },
+      padding: { top: 10, bottom: 10 },
     });
     return () => {
       decorationsRef.current?.clear();
@@ -141,7 +141,7 @@ export function DiffViewer({ workspaceId, file, activeIssue }: DiffViewerProps) 
   return (
     <section className="diff-viewer">
       <div className="diff-viewer__heading">
-        <div><strong>{file.filePath}</strong>{file.oldPath && <span>renamed from {file.oldPath}</span>}</div>
+        <div><strong title={file.filePath}>{file.filePath}</strong>{file.oldPath && <span title={file.oldPath}>renamed from {file.oldPath}</span>}</div>
         <div className="diff-viewer__stats"><b>+{file.additions}</b><i>-{file.deletions}</i><span>{file.language}</span></div>
       </div>
       <div className="diff-viewer__editor" ref={containerRef} />
